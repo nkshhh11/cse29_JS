@@ -1,0 +1,26 @@
+.dabba{
+    border: 2px solid black;
+}
+.box{             
+  display: flex;
+  justify-content: center;  
+  align-items: center;
+    background: white;
+  padding: 30px;
+  border-radius: 15px;
+
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+.buttonclr{
+    background-color: blue;
+    color: aliceblue;
+}
+.placeholder{
+    text-align: center;
+}
+.twobuttons{
+    text-align: center;
+}
+.threebuttons{
+    text-align: center;
+}

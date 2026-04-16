@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Temple Run Pro Clone</title>
+<style>
+body {
+    margin:0;
+    overflow:hidden;
+    background:#111;
+    font-family:Arial;
+}
+canvas {
+    display:block;
+}
+#ui {
+    position:absolute;
+    top:10px;
+    left:10px;
+    color:white;
+    font-size:18px;
+}
+#gameOver {
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    color:red;
+    font-size:40px;
+    display:none;
+    text-align:center;
+}
+button {
+    padding:10px 20px;
+    font-size:18px;
+    margin-top:10px;
+}
+</style>
+</head>
+<body>
+
+<div id="ui">Score: 0</div>
+<div id="gameOver">
+    GAME OVER <br>
+    <button onclick="restart()">Restart</button>
+</div>
+
+<canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// lanes
+let laneX = [
+    canvas.width/2 - 120,
+    canvas.width/2,
+    canvas.width/2 + 120
+];
+
+let lane = 1;
+
+// player
+let player = {
+    x: laneX[lane],
+    y: canvas.height - 150,
+    w: 40,
+    h: 60,
+    dy: 0,
+    gravity: 0.8,
+    jumpPower: -16,
+    grounded: true,
+    sliding: false
+};
+
+// game variables
+let obstacles = [];
+let coins = [];
+let speed = 6;
+let score = 0;
+let gameOver = false;
+
+// controls
+document.addEventListener("keydown", e=>{
+    if(gameOver) return;
+
+    if(e.key==="ArrowLeft" && lane>0) lane--;
+    if(e.key==="ArrowRight" && lane<2) lane++;
+
+    if(e.key==="ArrowUp" && player.grounded){
+        player.dy = player.jumpPower;
+        player.grounded = false;
+    }
+
+    if(e.key==="ArrowDown"){
+        player.sliding = true;
+        setTimeout(()=>player.sliding=false,500);
+    }
+});
+
+// spawn obstacles
+function spawnObstacle(){
+    let l = Math.floor(Math.random()*3);
+    let type = Math.random()>0.5 ? "block":"tall";
+
+    obstacles.push({
+        x: laneX[l],
+        y: -100,
+        w: 50,
+        h: type==="block"?50:90,
+        type:type
+    });
+}
+setInterval(spawnObstacle, 1200);
+
+// spawn coins
+function spawnCoin(){
+    let l = Math.floor(Math.random()*3);
+    coins.push({
+        x: laneX[l],
+        y: -20,
+        r: 12
+    });
+}
+setInterval(spawnCoin, 600);
+
+// draw road
+let roadOffset = 0;
+function drawRoad(){
+    roadOffset += speed;
+    ctx.fillStyle="#333";
+    ctx.fillRect(canvas.width/2 - 200,0,400,canvas.height);
+
+    ctx.strokeStyle="white";
+    ctx.lineWidth=3;
+
+    for(let i=0;i<canvas.height;i+=40){
+        ctx.beginPath();
+        ctx.moveTo(canvas.width/2, i+roadOffset%40);
+        ctx.lineTo(canvas.width/2, i+20+roadOffset%40);
+        ctx.stroke();
+    }
+}
+
+// collision
+function collide(a,b){
+    return a.x < b.x + b.w &&
+           a.x + a.w > b.x &&
+           a.y < b.y + b.h &&
+           a.y + a.h > b.y;
+}
+
+// update
+function update(){
+    if(gameOver) return;
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    drawRoad();
+
+    player.x = laneX[lane];
+
+    // gravity
+    player.y += player.dy;
+    player.dy += player.gravity;
+
+    if(player.y >= canvas.height - 150){
+        player.y = canvas.height - 150;
+        player.grounded = true;
+    }
+
+    // draw player
+    ctx.fillStyle="cyan";
+    ctx.fillRect(player.x, player.y, player.w, player.sliding?30:60);
+
+    // obstacles
+    obstacles.forEach((o,i)=>{
+        o.y += speed;
+
+        ctx.fillStyle="red";
+        ctx.fillRect(o.x,o.y,o.w,o.h);
+
+        if(collide(player,o)){
+            gameOver=true;
+            document.getElementById("gameOver").style.display="block";
+        }
+
+        if(o.y > canvas.height) obstacles.splice(i,1);
+    });
+
+    // coins
+    coins.forEach((c,i)=>{
+        c.y += speed;
+
+        ctx.fillStyle="gold";
+        ctx.beginPath();
+        ctx.arc(c.x,c.y,c.r,0,Math.PI*2);
+        ctx.fill();
+
+        if(
+            player.x < c.x + c.r &&
+            player.x + player.w > c.x &&
+            player.y < c.y + c.r &&
+            player.y + player.h > c.y
+        ){
+            coins.splice(i,1);
+            score += 10;
+        }
+
+        if(c.y > canvas.height) coins.splice(i,1);
+    });
+
+    // score
+    document.getElementById("ui").innerText = "Score: "+score;
+
+    speed += 0.002;
+
+    requestAnimationFrame(update);
+}
+
+// restart
+function restart(){
+    obstacles=[];
+    coins=[];
+    score=0;
+    speed=6;
+    gameOver=false;
+    document.getElementById("gameOver").style.display="none";
+    update();
+}
+
+update();
+</script>
+
+</body>
+</html>
