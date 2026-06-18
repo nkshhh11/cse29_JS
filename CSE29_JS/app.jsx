@@ -12,9 +12,9 @@ function App() {
     <div className="container">
       <h1>Student Information</h1>
 
-      <Student name="Tarun" course="Computer Science" marks="85" />
-      <Student name="Roshan" course="Information Technology" marks="92" />
-      <Student name="Saira" course="Electronics" marks="78" />
+      <Student name="aryan" course="Computer Science" marks="85" />
+      <Student name="ansh" course="dsa" marks="92" />
+      <Student name="surya" course="mechanics" marks="78" />
 
     </div>
   );
